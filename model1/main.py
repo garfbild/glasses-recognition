@@ -8,7 +8,7 @@ from keras.utils import to_categorical
 
 x_train = []
 y_train = []
-names = os.listdir(r"C:\Users\louis\Documents\STL-10\test_images")[0:200]
+names = os.listdir(r"C:\Users\louis\Documents\STL-10\test_images")[0:1000]
 for name in names:
     img = Image.open("C:\\Users\\louis\\Documents\\STL-10\\test_images\\"+name)
     data = np.asarray(img, dtype = "int32")
@@ -34,11 +34,11 @@ def createModel():
     model.add(Conv2D(filters = 48, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
     model.add(Dropout(0.25))
-    model.add(Conv2D(filters = 96, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu', input_shape = (32,32,3)))
+    model.add(Conv2D(filters = 96, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(Conv2D(filters = 96, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
     model.add(Dropout(0.25))
-    model.add(Conv2D(filters = 192, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu', input_shape = (32,32,3)))
+    model.add(Conv2D(filters = 192, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(Conv2D(filters = 192, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
     model.add(Dropout(0.25))
@@ -57,14 +57,18 @@ def createModel():
     model.summary()
     return model
 
-def trainModel(model):
+def trainModel(model,name):
     history = model.fit(x, y, epochs=10, batch_size=20,verbose=1)
     results = model.evaluate(x,y,verbose = 1,batch_size = 20)
-    model.save("cnn.h5")
+    model.save(name+".h5")
+    return model
 
-print(y)
 
-model = load_model("cnn.h5")
+
+model = createModel()
+model = trainModel(model,"cnn3")
+
+#model = load_model("cnn2.h5")
 
 x_test = []
 y_test = []
@@ -77,5 +81,5 @@ for name in os.listdir(r"C:\Users\louis\Documents\STL-10\Glasses_cv"):
 
 x = np.reshape(x_test,(len(x_test),96,96,3))
 
-classes = model.predict(np.expand_dims(x[1],axis = 0))
+classes = model.predict(x)
 print(classes)
