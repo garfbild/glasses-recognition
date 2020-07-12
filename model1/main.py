@@ -10,15 +10,22 @@ from keras.utils import to_categorical
 def loadTrainData():
     x_train = []
     y_train = []
-    names = os.listdir(r"C:\Users\louis\Documents\STL-10\train_images")[0:18]
+    names = os.listdir(r"C:\Users\louis\Documents\STL-10\train_images")[0:100]
     for name in names:
         img = Image.open("C:\\Users\\louis\\Documents\\STL-10\\train_images\\"+name)
         data = np.asarray(img, dtype = "int32")
         x_train.append(data)
         y_train.append(0)
 
-    for name in os.listdir(r"C:\Users\louis\Documents\STL-10\Glasses"):
-        img = Image.open("C:\\Users\\louis\\Documents\\STL-10\\Glasses\\"+name)
+    for name in os.listdir(r"C:\Users\louis\Documents\STL-10\Glasses\negative"):
+        img = Image.open("C:\\Users\\louis\\Documents\\STL-10\\Glasses\\negative\\"+name)
+        img = img.resize((96,96))
+        data = np.asarray(img, dtype = "int32")
+        x_train.append(data)
+        y_train.append(0)
+
+    for name in os.listdir(r"C:\Users\louis\Documents\STL-10\Glasses\positive"):
+        img = Image.open("C:\\Users\\louis\\Documents\\STL-10\\Glasses\\positive\\"+name)
         img = img.resize((96,96))
         data = np.asarray(img, dtype = "int32")
         x_train.append(data)
@@ -30,20 +37,22 @@ def loadTrainData():
 
     return x, y
 
-#plt.imshow(x_train[205], cmap='hsv')
-#plt.show()
 def createModel():
     model = Sequential()
-    model.add(Conv2D(filters = 48, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu', input_shape = (96,96,3)))
-    model.add(Conv2D(filters = 48, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
+    model.add(Conv2D(filters = 48, kernel_size = (9,9), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu', input_shape = (96,96,3)))
+    model.add(Conv2D(filters = 48, kernel_size = (9,9), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
     model.add(Dropout(0.25))
-    model.add(Conv2D(filters = 96, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(Conv2D(filters = 96, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
+    model.add(Conv2D(filters = 96, kernel_size = (7,7), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
+    model.add(Conv2D(filters = 96, kernel_size = (7,7), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
     model.add(Dropout(0.25))
-    model.add(Conv2D(filters = 192, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(Conv2D(filters = 192, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
+    model.add(Conv2D(filters = 192, kernel_size = (5,5), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
+    model.add(Conv2D(filters = 192, kernel_size = (5,5), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
+    model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
+    model.add(Dropout(0.25))
+    model.add(Conv2D(filters = 384, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
+    model.add(Conv2D(filters = 384, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
     model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
     model.add(Dropout(0.25))
     model.add(Flatten())
@@ -62,7 +71,8 @@ def createModel():
     return model
 
 def trainModel(model,name):
-    history = model.fit(x, y, epochs=50, batch_size=18,verbose=1)
+    x, y = loadTrainData()
+    history = model.fit(x, y, epochs=50, batch_size=35,verbose=1)
     results = model.evaluate(x,y,verbose = 1)
     model.save(name+".h5")
     return model
@@ -77,7 +87,7 @@ def makePrediction(model,data):
 def loadTestData():
     x_test = []
     y_test = []
-    names = os.listdir(r"C:\Users\louis\Documents\STL-10\test_images")[0:3]
+    names = os.listdir(r"C:\Users\louis\Documents\STL-10\test_images")[0:10]
     for name in names:
         img = Image.open("C:\\Users\\louis\\Documents\\STL-10\\test_images\\"+name)
         data = np.asarray(img, dtype = "int32")
@@ -96,14 +106,20 @@ def loadTestData():
 
     return x, y
 
-#model = createModel()
-#model = trainModel(model,"cnn4")
+model = createModel()
+model = trainModel(model,"cnn5")
 
-model = load_model("cnn4.h5")
+#model = load_model("cnn5.h5")
+
+x, y = loadTestData()
+
+print(makePrediction(model,x))
+print(y)
+
 
 img = Image.open("C:\\Users\\louis\\Documents\\STL-10\\long shot\\20200708_000552.jpg")
 width, height = img.size
-length = int(img.size[0]/8)
+length = int(img.size[0]/5)
 step = int(length/4)
 l = length/2 #because square
 
@@ -119,14 +135,12 @@ while i*step + length <= width:
         temp = temp.resize((96,96))
         data = np.asarray(temp, dtype = "int32")
         classes = makePrediction(model,data)
-        if classes[0][0] > max:
+        if classes[0][1] > max:
             plt.imshow(data, cmap='hsv')
-            plt.pause(1)
-            print(i,j)
-            max = classes[0][0]
+            plt.pause(0.5)
+            print(i,j,classes[0])
+            max = classes[0][1]
             maxi, maxj = i, j
-
-
         j += 1
     i += 1
 
