@@ -154,7 +154,7 @@ def regionProposal():
 
 model = Sequential()
 model.add(ResNet50(include_top = False, weights = 'imagenet'))
-model.add(Dense(2))
+model.add(Dense(2,activation = 'relu'))
 for layer in model.layers[0].layers:
     layer.trainable = False
 model.summary()
