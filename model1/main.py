@@ -34,46 +34,6 @@ def loadTrainData():
 
     return x, y
 
-def createModel():
-    model = Sequential()
-    model.add(Conv2D(filters = 48, kernel_size = (9,9), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu', input_shape = (96,96,3)))
-    model.add(Conv2D(filters = 48, kernel_size = (9,9), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
-    model.add(Dropout(0.25))
-    model.add(Conv2D(filters = 96, kernel_size = (7,7), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(Conv2D(filters = 96, kernel_size = (7,7), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
-    model.add(Dropout(0.25))
-    model.add(Conv2D(filters = 192, kernel_size = (5,5), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(Conv2D(filters = 192, kernel_size = (5,5), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
-    model.add(Dropout(0.25))
-    model.add(Conv2D(filters = 384, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(Conv2D(filters = 384, kernel_size = (3,3), strides=(1,1), data_format="channels_last", padding = 'same',activation = 'relu'))
-    model.add(MaxPooling2D(pool_size = (2,2), padding = 'same', strides = 2))
-    model.add(Dropout(0.25))
-    model.add(Flatten())
-    model.add(Dense(512,activation = 'relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(256,activation = 'relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(128,activation = 'relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(2,activation = 'softmax'))
-
-    model.compile(optimizer='adam',
-                  loss='categorical_crossentropy',
-                  metrics=['accuracy'])
-    model.summary()
-    return model
-
-def trainModel(model,name):
-    x, y = loadTrainData()
-    history = model.fit(x, y, epochs=10, batch_size=35,verbose=1)
-    results = model.evaluate(x,y,verbose = 1)
-    model.save(name+".h5")
-    return model
-
 def makePrediction(model,data):
     if data.ndim == 3:
         classes = model.predict(np.expand_dims(data,axis = 0))
@@ -110,7 +70,6 @@ def regionProposal():
     step = int(length/4)
     l = length/2 #because square
 
-
     max = 0
     maxi, maxj = 0, 0
 
@@ -137,16 +96,6 @@ def regionProposal():
     plt.imshow(data, cmap='hsv')
     plt.show()
 
-#model = createModel()
-#model = trainModel(model,"cnn5")
-
-#model = load_model("cnn5.h5")
-
-#x, y = loadTestData()
-
-#print(makePrediction(model,x))
-#print(y)
-
 model = Sequential()
 model.add(ResNet50(include_top = False, weights = 'imagenet', input_shape = (96,96,3)))
 model.add(Dense(2,activation = 'softmax'))
@@ -157,7 +106,12 @@ model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
+x, y = loadTrainData()
+print(x,y)
+history = model.fit(x, y, epochs=10, batch_size=35,verbose=1)
+model.save(resnetd2+".h5")
+
 model = trainModel(model,"resnetD2")
-x , y = loadTestData()
+x, y = loadTestData()
 results = model.evaluate(x,y,batch_size = 3)
 print(results)
