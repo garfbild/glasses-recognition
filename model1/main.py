@@ -8,6 +8,7 @@ from keras.models import Sequential, model_from_json, load_model
 from keras.layers import Dense, Activation, Conv2D, Flatten, MaxPooling2D, Dropout
 from keras.utils import to_categorical
 from keras.applications.resnet50 import ResNet50
+from keras import activations
 
 def loadTrainData():
     x_train = []
