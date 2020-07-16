@@ -13,22 +13,16 @@ from keras import activations
 def loadTrainData():
     x_train = []
     y_train = []
-    names = os.listdir(r"C:\Users\louis\Documents\GlassesData\train_images")[0:100]
+    names = os.listdir(r"C:\Users\louis\Documents\GlassesData\training_data\negative\train_images")[0:100]
     for name in names:
-        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\train_images\\"+name)
+        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\training_data\\negative\\train_images\\"+name)
         data = np.asarray(img, dtype = "int32")
         x_train.append(data)
         y_train.append(0)
 
-    for name in os.listdir(r"C:\Users\louis\Documents\GlassesData\Glasses\negative"):
-        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\Glasses\\negative\\"+name)
-        img = img.resize((96,96))
-        data = np.asarray(img, dtype = "int32")
-        x_train.append(data)
-        y_train.append(0)
 
-    for name in os.listdir(r"C:\Users\louis\Documents\GlassesData\Glasses\positive"):
-        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\Glasses\\positive\\"+name)
+    for name in os.listdir(r"C:\Users\louis\Documents\GlassesData\training_data\positive"):
+        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\training_data\\positive\\"+name)
         img = img.resize((96,96))
         data = np.asarray(img, dtype = "int32")
         x_train.append(data)
@@ -75,7 +69,7 @@ def createModel():
 
 def trainModel(model,name):
     x, y = loadTrainData()
-    history = model.fit(x, y, epochs=50, batch_size=35,verbose=1)
+    history = model.fit(x, y, epochs=10, batch_size=35,verbose=1)
     results = model.evaluate(x,y,verbose = 1)
     model.save(name+".h5")
     return model
@@ -90,15 +84,15 @@ def makePrediction(model,data):
 def loadTestData():
     x_test = []
     y_test = []
-    names = os.listdir(r"C:\Users\louis\Documents\GlassesData\test_images")[0:10]
+    names = os.listdir(r"C:\Users\louis\Documents\GlassesData\test_data\negative")[0:10]
     for name in names:
-        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\test_images\\"+name)
+        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\test_data\\negative\\"+name)
         data = np.asarray(img, dtype = "int32")
         x_test.append(data)
         y_test.append(0)
 
-    for name in os.listdir(r"C:\Users\louis\Documents\GlassesData\Glasses_cv"):
-        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\Glasses_cv\\"+name)
+    for name in os.listdir(r"C:\Users\louis\Documents\GlassesData\test_data\positive"):
+        img = Image.open("C:\\Users\\louis\\Documents\\GlassesData\\test_data\\positive"+name)
         img = img.resize((96,96))
         data = np.asarray(img, dtype = "int32")
         x_test.append(data)
@@ -154,8 +148,16 @@ def regionProposal():
 #print(y)
 
 model = Sequential()
-model.add(ResNet50(include_top = False, weights = 'imagenet'))
-model.add(Dense(2,activation = 'relu'))
+model.add(ResNet50(include_top = False, weights = 'imagenet', input_shape = (96,96,3)))
+model.add(Dense(2,activation = 'softmax'))
 for layer in model.layers[0].layers:
     layer.trainable = False
 model.summary()
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+model = trainModel(model,"resnetD2")
+x , y = loadTestData()
+results = model.evaluate(x,y,batch_size = 3)
+print(results)
